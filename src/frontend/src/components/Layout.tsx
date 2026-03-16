@@ -2,14 +2,17 @@ import {
   Bell,
   Heart,
   Home,
+  Moon,
   Settings,
   Sparkles,
+  Sun,
   User,
   Users,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 import type { Page } from "../types";
 
 interface NavItem {
@@ -27,7 +30,7 @@ function NavIcon({ item, isActive }: { item: NavItem; isActive: boolean }) {
       type="button"
       data-ocid={item.ocid}
       onClick={() => navigate(item.page)}
-      className={`relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200 group ${
+      className={`relative flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all duration-200 group min-w-[52px] ${
         isActive
           ? "text-primary"
           : "text-muted-foreground hover:text-foreground"
@@ -35,18 +38,24 @@ function NavIcon({ item, isActive }: { item: NavItem; isActive: boolean }) {
     >
       <span
         className={`p-2 rounded-xl transition-all duration-200 ${
-          isActive ? "bg-primary/15 glow-sm" : "group-hover:bg-muted/50"
+          isActive ? "bg-primary/20 glow-sm" : "group-hover:bg-muted/50"
         }`}
       >
         {item.icon}
       </span>
-      <span className="text-[10px] font-medium tracking-wide">
+      <span className="text-[10px] font-semibold tracking-wide">
         {item.label}
       </span>
       {(item.badge ?? 0) > 0 && (
         <span className="absolute top-1 right-1 w-4 h-4 bg-accent text-[9px] font-bold rounded-full flex items-center justify-center text-white">
           {item.badge}
         </span>
+      )}
+      {isActive && (
+        <motion.span
+          layoutId="nav-dot"
+          className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
+        />
       )}
     </button>
   );
@@ -87,6 +96,7 @@ function SidebarNavItem({
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { nav, state, navigate } = useApp();
+  const { theme, toggleTheme } = useTheme();
   const unreadCount = state.notifications.filter((n) => !n.isRead).length;
 
   const navItems: NavItem[] = [
@@ -147,21 +157,32 @@ export default function Layout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="mt-auto">
-          <button
-            type="button"
-            onClick={() => navigate("settings")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-              nav.currentPage === "settings"
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-            }`}
-          >
-            <Settings size={20} />
-            <span className="text-sm font-medium">Settings</span>
-          </button>
+          <div className="flex items-center gap-2 mb-1">
+            <button
+              type="button"
+              onClick={() => navigate("settings")}
+              className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                nav.currentPage === "settings"
+                  ? "bg-primary/15 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              }`}
+            >
+              <Settings size={20} />
+              <span className="text-sm font-medium">Settings</span>
+            </button>
+            <button
+              type="button"
+              data-ocid="nav.theme_toggle"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="p-2.5 rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-200"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
 
           {state.currentUser && (
-            <div className="mt-3 flex items-center gap-3 px-3 py-2 rounded-xl glass">
+            <div className="mt-2 flex items-center gap-3 px-3 py-2 rounded-xl glass">
               <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-xs font-bold text-primary">
                 {state.currentUser.initials}
               </div>
@@ -178,8 +199,13 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto scrollbar-hide pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+      {/* Main content — extra bottom padding so last card clears the fixed nav */}
+      <main
+        className="flex-1 overflow-y-auto scrollbar-hide md:pb-0"
+        style={{
+          paddingBottom: "calc(5rem + env(safe-area-inset-bottom, 16px))",
+        }}
+      >
         <motion.div
           key={nav.currentPage}
           initial={{ opacity: 0, y: 8 }}
@@ -191,8 +217,16 @@ export default function Layout({ children }: { children: ReactNode }) {
         </motion.div>
       </main>
 
-      {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 pb-[env(safe-area-inset-bottom,0px)]">
+      {/* Mobile bottom tab bar — solid background so content never bleeds through */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-white/10"
+        style={{
+          background: "oklch(0.1 0.025 280 / 0.97)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
         <div className="flex items-center justify-around px-2 py-1">
           {navItems.map((item) => (
             <NavIcon

@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
 import Layout from "./components/Layout";
 import { AppProvider, useApp } from "./context/AppContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
 import CircleFeedPage from "./pages/CircleFeedPage";
@@ -94,9 +95,11 @@ function AppInner() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <AppInner />
-      <Toaster position="top-center" />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <AppInner />
+        <Toaster position="top-center" />
+      </AppProvider>
+    </ThemeProvider>
   );
 }

@@ -162,7 +162,7 @@ const defaultSeedState: AppState = {
 
 function getInitialState(): AppState {
   const saved = loadState();
-  if (saved?.isSeeded) return { ...saved, currentUser: null };
+  if (saved?.isSeeded) return saved;
   return defaultSeedState;
 }
 

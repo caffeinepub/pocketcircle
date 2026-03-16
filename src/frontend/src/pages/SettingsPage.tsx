@@ -14,13 +14,17 @@ import {
   Loader2,
   Lock,
   LogOut,
+  Moon,
+  Palette,
   Shield,
   ShieldCheck,
+  Sun,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useSaveProfile } from "../hooks/useQueries";
 import type { LegalPage, UserProfile } from "../types";
@@ -75,6 +79,7 @@ export default function SettingsPage() {
   const { clear } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { state, dispatch, navigate } = useApp();
+  const { theme, toggleTheme } = useTheme();
   const saveProfile = useSaveProfile();
 
   const currentUser = state.currentUser;
@@ -99,6 +104,7 @@ export default function SettingsPage() {
       username: username.trim().toLowerCase().replace(/\s+/g, "_"),
       bio: bio.trim(),
       initials: getInitials(displayName.trim()),
+      avatarUrl: currentUser?.avatarUrl,
     };
 
     try {
@@ -142,6 +148,52 @@ export default function SettingsPage() {
         <p className="text-muted-foreground text-sm mt-0.5">
           Manage your account
         </p>
+      </motion.div>
+
+      {/* Appearance */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.02 }}
+        className="glass rounded-2xl mb-4 overflow-hidden"
+      >
+        <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+          <Palette size={16} className="text-primary" />
+          <h2 className="font-display font-semibold text-base">Appearance</h2>
+        </div>
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">
+                {theme === "dark" ? "Dark Mode" : "Light Mode"}
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {theme === "dark"
+                  ? "Switch to light theme"
+                  : "Switch to dark theme"}
+              </p>
+            </div>
+            <button
+              type="button"
+              data-ocid="settings.theme_toggle"
+              onClick={toggleTheme}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/50 hover:bg-muted transition-colors border border-border/50"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <>
+                  <Moon size={15} className="text-primary" />
+                  <span className="text-sm font-medium">Dark</span>
+                </>
+              ) : (
+                <>
+                  <Sun size={15} className="text-yellow-500" />
+                  <span className="text-sm font-medium">Light</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Profile section */}

@@ -78,7 +78,7 @@ export default function ProfilePage() {
               aria-label="Change profile photo"
             >
               <Avatar className="w-16 h-16 border-2 border-primary/30">
-                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
+                <AvatarImage src={avatarUrl || ""} alt={displayName} />
                 <AvatarFallback className="bg-primary/15 text-primary text-xl font-bold">
                   {initials}
                 </AvatarFallback>
@@ -134,7 +134,10 @@ export default function ProfilePage() {
         </h3>
         <div className="space-y-2">
           {myCircles.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">
+            <p
+              data-ocid="profile.circles.empty_state"
+              className="text-sm text-muted-foreground py-4 text-center"
+            >
               No circles yet
             </p>
           ) : (

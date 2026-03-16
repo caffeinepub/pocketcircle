@@ -15,6 +15,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useApp, useDemoUserId } from "../context/AppContext";
+import { useReactionSounds } from "../hooks/useReactionSounds";
 import type { Comment, Post } from "../types";
 
 const REACTIONS = [
@@ -25,6 +26,16 @@ const REACTIONS = [
   "\uD83D\uDE2E",
   "\uD83C\uDF89",
 ];
+
+// Colours to tint each emoji pill when active
+const REACTION_COLORS: Record<string, string> = {
+  "\u2764\uFE0F": "oklch(0.62 0.22 25)",
+  "\uD83D\uDD25": "oklch(0.65 0.22 45)",
+  "\uD83D\uDE02": "oklch(0.68 0.18 90)",
+  "\uD83D\uDC4D": "oklch(0.65 0.22 250)",
+  "\uD83D\uDE2E": "oklch(0.68 0.18 200)",
+  "\uD83C\uDF89": "oklch(0.68 0.22 315)",
+};
 
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
@@ -94,6 +105,61 @@ function PhotoImage({ src }: { src: string }) {
   );
 }
 
+// Burst angles for particle animation (5 equally-spaced directions)
+const BURST_ANGLES = [0, 72, 144, 216, 288];
+
+function ParticleBurst({ emoji }: { emoji: string }) {
+  return (
+    <>
+      {BURST_ANGLES.map((angle) => {
+        const rad = (angle * Math.PI) / 180;
+        const tx = Math.cos(rad) * 36;
+        const ty = Math.sin(rad) * 36;
+        return (
+          <motion.span
+            key={angle}
+            className="absolute text-sm pointer-events-none select-none"
+            style={{ top: "50%", left: "50%", x: "-50%", y: "-50%" }}
+            initial={{ opacity: 1, x: "-50%", y: "-50%", scale: 0.8 }}
+            animate={{
+              opacity: 0,
+              x: `calc(-50% + ${tx}px)`,
+              y: `calc(-50% + ${ty}px)`,
+              scale: 0,
+            }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            {emoji}
+          </motion.span>
+        );
+      })}
+    </>
+  );
+}
+
+// Animated counter that slides up when count changes
+function AnimatedCount({ count }: { count: number }) {
+  return (
+    <span
+      className="relative overflow-hidden inline-flex items-center"
+      style={{ minWidth: count > 0 ? "1ch" : 0 }}
+    >
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={count}
+          initial={{ y: 8, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -8, opacity: 0 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="text-xs font-semibold"
+        >
+          {count > 0 ? count : ""}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 interface PostCardProps {
   post: Post;
   index?: number;
@@ -102,6 +168,7 @@ interface PostCardProps {
 export default function PostCard({ post, index = 0 }: PostCardProps) {
   const { dispatch } = useApp();
   const currentUserId = useDemoUserId();
+  const sounds = useReactionSounds();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,12 +177,26 @@ export default function PostCard({ post, index = 0 }: PostCardProps) {
   const [bigReactionKey, setBigReactionKey] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [isReported, setIsReported] = useState(false);
+  const [burstEmoji, setBurstEmoji] = useState<string | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ocidIndex = index + 1;
 
   const handleReaction = useCallback(
-    (emoji: string) => {
+    (emoji: string, isBig = false) => {
+      const users = post.reactions[emoji] || [];
+      const hasReacted = users.includes(currentUserId);
+
+      if (isBig) {
+        sounds.playBig();
+      } else if (hasReacted) {
+        sounds.playRemove();
+      } else {
+        sounds.playAdd();
+        setBurstEmoji(emoji);
+        setTimeout(() => setBurstEmoji(null), 600);
+      }
+
       dispatch({
         type: "TOGGLE_REACTION",
         postId: post.id,
@@ -123,13 +204,13 @@ export default function PostCard({ post, index = 0 }: PostCardProps) {
         userId: currentUserId,
       });
     },
-    [dispatch, post.id, currentUserId],
+    [dispatch, post.id, post.reactions, currentUserId, sounds],
   );
 
   function triggerBigReaction(emoji: string) {
     setBigReactionEmoji(emoji);
     setBigReactionKey((k) => k + 1);
-    handleReaction(emoji);
+    handleReaction(emoji, true);
     setShowReactionPicker(false);
   }
 
@@ -339,37 +420,75 @@ export default function PostCard({ post, index = 0 }: PostCardProps) {
 
         {/* Reactions */}
         <div className="px-4 py-3">
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-2 mb-3">
             {REACTIONS.map((emoji) => {
               const users = post.reactions[emoji] || [];
               const hasReacted = users.includes(currentUserId);
+              const accentColor =
+                REACTION_COLORS[emoji] ?? "oklch(0.65 0.22 290)";
               return (
-                <button
-                  type="button"
-                  key={emoji}
-                  data-ocid="post.reaction_button"
-                  onClick={() => handleReaction(emoji)}
-                  className={`reaction-pill ${hasReacted ? "active" : ""}`}
-                >
-                  <span>{emoji}</span>
-                  {users.length > 0 && (
-                    <span
-                      className={`text-xs font-medium ${hasReacted ? "text-primary" : "text-muted-foreground"}`}
-                    >
-                      {users.length}
-                    </span>
-                  )}
-                </button>
+                <div key={emoji} className="relative">
+                  <motion.button
+                    type="button"
+                    data-ocid="post.reaction_button"
+                    onClick={() => handleReaction(emoji)}
+                    whileTap={{ scale: 1.4, y: -8 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 15,
+                    }}
+                    animate={
+                      hasReacted
+                        ? {
+                            boxShadow: [
+                              `0 0 0px ${accentColor}00`,
+                              `0 0 12px ${accentColor}88`,
+                              `0 0 0px ${accentColor}00`,
+                            ],
+                          }
+                        : { boxShadow: "0 0 0px transparent" }
+                    }
+                    style={{
+                      background: hasReacted
+                        ? `linear-gradient(135deg, ${accentColor}30, ${accentColor}18)`
+                        : "oklch(0.2 0.025 278 / 0.8)",
+                      border: `1.5px solid ${
+                        hasReacted
+                          ? `${accentColor}70`
+                          : "oklch(0.28 0.04 278 / 0.5)"
+                      }`,
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm cursor-pointer select-none transition-all duration-200 font-medium"
+                  >
+                    <span className="text-base leading-none">{emoji}</span>
+                    <AnimatedCount count={users.length} />
+                  </motion.button>
+
+                  {/* Burst particles */}
+                  <AnimatePresence>
+                    {burstEmoji === emoji && (
+                      <ParticleBurst key={emoji} emoji={emoji} />
+                    )}
+                  </AnimatePresence>
+                </div>
               );
             })}
-            <button
+
+            <motion.button
               type="button"
               data-ocid="post.reaction_picker_button"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => setShowReactionPicker(true)}
-              className="reaction-pill text-muted-foreground hover:text-foreground text-base leading-none"
+              className="flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-foreground text-lg leading-none transition-colors"
+              style={{
+                background: "oklch(0.2 0.025 278 / 0.8)",
+                border: "1.5px solid oklch(0.28 0.04 278 / 0.5)",
+              }}
             >
               +
-            </button>
+            </motion.button>
           </div>
 
           <div className="flex items-center justify-between">

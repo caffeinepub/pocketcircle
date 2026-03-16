@@ -37,8 +37,13 @@ export function useStorageUpload(): {
       const url = await storageClient.getDirectURL(hash);
       return url;
     } catch (err) {
-      console.warn("Blob upload failed, falling back to object URL", err);
-      return URL.createObjectURL(file);
+      console.warn("Blob upload failed, falling back to data URL", err);
+      // Convert to base64 data URL so it persists across page reloads
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
     } finally {
       setIsUploading(false);
     }

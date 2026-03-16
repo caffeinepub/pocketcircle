@@ -40,6 +40,34 @@
     --sidebar-border: 0.2 0.025 278;
     --sidebar-ring: 0.65 0.22 290;
   }
+
+  .light {
+    --background: 0.97 0.008 290;
+    --foreground: 0.12 0.02 280;
+    --card: 0.94 0.01 285;
+    --card-foreground: 0.12 0.02 280;
+    --popover: 0.96 0.008 290;
+    --popover-foreground: 0.12 0.02 280;
+    --primary: 0.55 0.22 290;
+    --primary-foreground: 0.98 0.005 290;
+    --secondary: 0.88 0.02 285;
+    --secondary-foreground: 0.2 0.03 280;
+    --muted: 0.9 0.015 285;
+    --muted-foreground: 0.45 0.04 280;
+    --accent: 0.58 0.18 315;
+    --accent-foreground: 0.98 0.005 290;
+    --destructive: 0.5 0.22 25;
+    --destructive-foreground: 0.98 0.01 290;
+    --border: 0.82 0.02 285;
+    --input: 0.88 0.015 285;
+    --ring: 0.55 0.22 290;
+    --sidebar: 0.92 0.015 285;
+    --chart-1: 0.65 0.22 290;
+    --chart-2: 0.68 0.18 315;
+    --chart-3: 0.72 0.15 200;
+    --chart-4: 0.7 0.18 150;
+    --chart-5: 0.68 0.2 60;
+  }
 }
 
 @layer base {
@@ -68,6 +96,18 @@
       );
     min-height: 100vh;
   }
+  .light body {
+    background-image: radial-gradient(
+        ellipse at 20% 10%,
+        oklch(0.88 0.06 290 / 0.4) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse at 80% 80%,
+        oklch(0.86 0.05 310 / 0.3) 0%,
+        transparent 50%
+      );
+  }
 }
 
 @layer utilities {
@@ -77,11 +117,19 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
+  .light .glass {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
   .glass-strong {
     background: rgba(255, 255, 255, 0.07);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .light .glass-strong {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.12);
   }
   .gradient-text {
     background: linear-gradient(
