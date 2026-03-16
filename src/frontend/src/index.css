@@ -1,0 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Figtree:wght@300;400;500;600;700;800;900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0.1 0.025 280;
+    --foreground: 0.95 0.01 290;
+    --card: 0.14 0.022 278;
+    --card-foreground: 0.95 0.01 290;
+    --popover: 0.12 0.02 280;
+    --popover-foreground: 0.95 0.01 290;
+    --primary: 0.65 0.22 290;
+    --primary-foreground: 0.98 0.005 290;
+    --secondary: 0.2 0.03 280;
+    --secondary-foreground: 0.85 0.02 290;
+    --muted: 0.22 0.025 278;
+    --muted-foreground: 0.55 0.04 280;
+    --accent: 0.68 0.18 315;
+    --accent-foreground: 0.98 0.005 290;
+    --destructive: 0.6 0.22 25;
+    --destructive-foreground: 0.98 0.01 290;
+    --border: 0.22 0.03 278;
+    --input: 0.2 0.025 278;
+    --ring: 0.65 0.22 290;
+    --radius: 1rem;
+    --chart-1: 0.65 0.22 290;
+    --chart-2: 0.68 0.18 315;
+    --chart-3: 0.72 0.15 200;
+    --chart-4: 0.7 0.18 150;
+    --chart-5: 0.68 0.2 60;
+    --sidebar: 0.08 0.02 280;
+    --sidebar-foreground: 0.9 0.02 290;
+    --sidebar-primary: 0.65 0.22 290;
+    --sidebar-primary-foreground: 0.98 0.005 290;
+    --sidebar-accent: 0.2 0.03 280;
+    --sidebar-accent-foreground: 0.9 0.02 290;
+    --sidebar-border: 0.2 0.025 278;
+    --sidebar-ring: 0.65 0.22 290;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    background-image: radial-gradient(
+        ellipse at 20% 10%,
+        oklch(0.18 0.08 290 / 0.4) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse at 80% 80%,
+        oklch(0.16 0.06 310 / 0.3) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        ellipse at 50% 50%,
+        oklch(0.12 0.04 260 / 0.2) 0%,
+        transparent 70%
+      );
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.18 290),
+      oklch(0.75 0.18 315)
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glow-primary {
+    box-shadow: 0 0 20px oklch(0.65 0.22 290 / 0.3), 0 0 60px
+      oklch(0.65 0.22 290 / 0.1);
+  }
+  .glow-sm {
+    box-shadow: 0 0 12px oklch(0.65 0.22 290 / 0.2);
+  }
+  .font-display {
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+  }
+  .font-body {
+    font-family: "Figtree", system-ui, sans-serif;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .reaction-pill {
+    @apply flex items-center gap-1 px-2.5 py-1 rounded-full text-sm transition-all duration-200 cursor-pointer select-none;
+    background: oklch(0.2 0.025 278 / 0.8);
+    border: 1px solid oklch(0.28 0.04 278 / 0.5);
+  }
+  .reaction-pill:hover {
+    background: oklch(0.65 0.22 290 / 0.15);
+    border-color: oklch(0.65 0.22 290 / 0.4);
+    transform: scale(1.05);
+  }
+  .reaction-pill.active {
+    background: oklch(0.65 0.22 290 / 0.2);
+    border-color: oklch(0.65 0.22 290 / 0.5);
+  }
+}
